@@ -1,21 +1,73 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { MPerezLogo, MMark } from "../assets/svgComponents";
 import MobileMenu from "./MobileMenu";
 
 export default function Header() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false);           
+  const [scrolled, setScrolled] = useState(false);    
+  const [homeInView, setHomeInView] = useState(true); 
+  const location = useLocation();
+
+  useEffect(() => {
+    const scroller = document.querySelector<HTMLElement>(".fullpage-scroll");
+    if (!scroller) return;
+
+    const onScroll = () => {
+      setScrolled(scroller.scrollTop > 4);
+    };
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+
+    // Observer para #home (usa el mismo scroller como root)
+    const homeEl = document.getElementById("home");
+    let observer: IntersectionObserver | null = null;
+    if (homeEl) {
+      observer = new IntersectionObserver(
+        (entries) => {
+          const entry = entries[0];
+          setHomeInView(entry.isIntersecting && entry.intersectionRatio > 0.35);
+        },
+        {
+          root: scroller,
+          threshold: [0.2, 0.35, 0.6],
+        }
+      );
+      observer.observe(homeEl);
+    }
+
+    return () => {
+      scroller.removeEventListener("scroll", onScroll);
+      if (observer && homeEl) observer.unobserve(homeEl);
+    };
+  }, [location.pathname]); // reevalúa al cambiar de ruta (ej. /resume)
 
   return (
-    <header className="sticky top-0 z-50 border-b border-accent/30 bg-secondary/80 backdrop-blur text-accent">
+    <header
+      className={[
+        "fixed top-0 left-0 right-0 z-50 bg-transparent",
+        // Base: transparente. Al scrollear: micro fondo + blur + hairline
+        scrolled
+          ? "backdrop-blur-md"
+          : "backdrop-blur-0",
+      ].join(" ")}
+    >
       <nav className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
         {/* Logo (lleva a Home) */}
-        <Link to="/#home" className="font-extrabold tracking-wider">
-          <span className="px-2 py-1 rounded bg-accent text-base">TU</span> Portafolio
+        <Link to="/#home" className="flex items-center gap-2 text-secondary">
+          {homeInView ? (
+            // Logo grande cuando #home visible
+            <MPerezLogo className="h-7 md:h-8" />
+          ) : (
+            // Monograma animado cuando estás fuera del Hero
+            <div className="flex items-center gap-2 font-semibold">
+              <MMark className="h-10 w-10" />
+            </div>
+          )}
         </Link>
 
-        {/* Botón burger SIEMPRE visible */}
         <button
-          className="p-2 rounded hover:bg-accent/10 focus:outline-none focus:ring focus:ring-accent/40"
+          className="p-2 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 hover:bg-accent/10"
           onClick={() => setOpen(v => !v)}
           aria-expanded={open}
           aria-label="Abrir menú"
@@ -27,9 +79,8 @@ export default function Header() {
           </div>
         </button>
       </nav>
-
-      {/* Drawer */}
-      <MobileMenu open={open} setOpen={setOpen} />
+      
+       <MobileMenu open={open} setOpen={setOpen} />
     </header>
   );
 }
