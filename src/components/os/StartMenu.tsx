@@ -7,18 +7,18 @@ import type { App } from "@/lib/app";
 import { openApp } from "@/lib/app";
 import { trapTabKey } from "@/lib/a11y";
 
-/* ===================== Props ===================== */
+const Z_STARTMENU = 2147483600; // enorme pero seguro; deja margen para overlays del warp
+
 type Props = {
   open: boolean;
   onClose: () => void;
-  centered?: boolean;       // modo moderno centrado
+  centered?: boolean;
   width?: number;
   height?: number;
-  offsetBottom?: number;    // distancia al dock
+  offsetBottom?: number;
   items: App[];
 };
 
-/* ===================== Celdas Modernas ===================== */
 function LauncherTileModern({
   item,
   onAction,
@@ -36,23 +36,17 @@ function LauncherTileModern({
       onClick={() => onAction(item)}
       aria-label={item.description ? `${item.title}: ${item.description}` : item.title}
     >
-      <span
-        className={`grid place-items-center w-9 h-9 rounded-lg bg-gradient-to-br ${item.gradient ?? "from-blue-500 to-indigo-700"}`}
-        aria-hidden
-      >
+      <span className={`grid place-items-center w-9 h-9 rounded-lg bg-gradient-to-br ${item.gradient ?? "from-blue-500 to-indigo-700"}`} aria-hidden>
         <Icon className="w-5 h-5 text-white" />
       </span>
       <div className="text-left">
         <div className="font-medium">{item.title}</div>
-        {item.description && (
-          <div className="text-xs text-white/70">{item.description}</div>
-        )}
+        {item.description && <div className="text-xs text-white/70">{item.description}</div>}
       </div>
     </button>
   );
 }
 
-/* ===================== Celdas Retro ===================== */
 function LauncherRowRetro({
   item,
   onAction,
@@ -76,7 +70,6 @@ function LauncherRowRetro({
   );
 }
 
-/* ===================== Componente principal ===================== */
 export function StartMenu({
   open,
   onClose,
@@ -91,12 +84,9 @@ export function StartMenu({
   const warpRef = useRef<ThemeWarpHandle>(null);
 
   const isRetro =
-    "isRetro" in theme
-      ? (theme as { isRetro?: boolean }).isRetro
-      : (theme as { theme?: string }).theme === "retro";
-  const toggleTheme = (theme as { toggle?: () => void }).toggle ?? (() => {});
+    "isRetro" in theme ? (theme as { isRetro?: boolean }).isRetro : (theme as { theme?: string }).theme === "retro";
+  const toggleTheme = (theme as { toggle?: () => void }).toggle ?? (() => { });
 
-  // A11y: cerrar con ESC + enfoque inicial
   const firstItemRef = useRef<HTMLButtonElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -106,10 +96,7 @@ export function StartMenu({
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
-
-    // Enfoca el primer ítem cuando abre
     const t = setTimeout(() => firstItemRef.current?.focus(), 0);
-
     return () => {
       window.removeEventListener("keydown", onKey);
       clearTimeout(t);
@@ -118,25 +105,24 @@ export function StartMenu({
 
   if (!open) return null;
 
-  // Ejecuta acción/abre app
   const handleItemAction = (item: App) => {
     openApp(os, item);
     onClose();
   };
 
-  /* ===================== MODERNO (centrado) ===================== */
+  // ==== Moderno (centrado) ====
   if (!isRetro && centered) {
     return (
       <>
-        {/* Overlay de transición temporal */}
-        <ThemeWarp ref={warpRef} />
+        {/* Warp por ENCIMA del StartMenu (zIndex + 1) */}
+        <ThemeWarp ref={warpRef} zIndex={Z_STARTMENU + 1} />
 
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby="launcher-title"
           className="fixed inset-0 flex items-end justify-center"
-          style={{ zIndex: 60, paddingBottom: offsetBottom }}
+          style={{ zIndex: Z_STARTMENU, paddingBottom: offsetBottom }}
           onClick={onClose}
           onKeyDown={(e) => trapTabKey(e, containerRef.current)}
         >
@@ -147,14 +133,10 @@ export function StartMenu({
             style={{ width, height }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Top bar */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 text-white/90">
-              <span id="launcher-title" className="font-semibold">
-                Launcher
-              </span>
+              <span id="launcher-title" className="font-semibold">Launcher</span>
               <button
                 onClick={() => {
-                  // Dispara warp y SOLO al terminar cambiamos el tema (con hold extra)
                   warpRef.current?.start(isRetro ? "toModern" : "toRetro", {
                     holdMs: 1000,
                     onComplete: () => {
@@ -167,11 +149,10 @@ export function StartMenu({
                 aria-label="Switch theme"
               >
                 {isRetro ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                <span className="text-sm">{isRetro ? "Modern" : "Retro"}</span>
+                <span className="text-sm">{isRetro ? "Return to the present" : "Journey to the past"}</span>
               </button>
             </div>
 
-            {/* Grid de apps */}
             <div className="p-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-white/90">
               {items.map((it, idx) => (
                 <LauncherTileModern
@@ -188,18 +169,16 @@ export function StartMenu({
     );
   }
 
-  /* ===================== RETRO (anclado) ===================== */
+  // ==== Retro (anclado) ====
   return (
     <>
-      {/* Overlay de transición también en retro */}
-      <ThemeWarp ref={warpRef} />
-
+      <ThemeWarp ref={warpRef} zIndex={Z_STARTMENU + 1} />
       <div
         id="start-menu"
         className="start-menu"
         role="menu"
         aria-label="Start"
-        style={{ left: 8, bottom: 46 }}
+        style={{ left: 8, bottom: 46, zIndex: Z_STARTMENU }}
       >
         <div className="p-2">
           {items.map((it, idx) => (
