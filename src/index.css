@@ -12,14 +12,18 @@
     font-family: "Inter", system-ui, sans-serif;
   }
 
-  /* Z-layers para el OS */
-  :root {
-    --z-desktop: 0;
-    --z-windows: 10;
-    --z-taskbar: 20;
-    --z-startmenu: 30;
-    --z-tooltip: 40;
-  }
+    /* Z-layers para el OS */
+    :root {
+      --z-desktop: 0;
+      --z-windows: 10;
+      --z-taskbar: 20;
+      --z-startmenu: 30;
+      --z-tooltip: 40;
+      --menubar-h: 0px;
+      /* altura de la barra superior (moderno) */
+      --taskbar-h: 0px;
+      /* altura del taskbar (retro) */
+    }
 }
 
 @layer components {
@@ -162,6 +166,16 @@
       linear-gradient(180deg, #3b0a88, #7a0fa6 40%, #b012a6);
   }
 
+.dock-hover-strip {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;           
+  height: 8px;
+  z-index: calc(var(--z-taskbar) + 1);
+  pointer-events: auto;
+
+}
   /* Dock moderno (centrado, flotante, glass) */
   .os-taskbar.modern {
     position: fixed;

@@ -1,9 +1,8 @@
-import { useRef, useState } from "react";
-import type { ComponentType } from "react";
+import { useRef, useState, type ComponentType } from "react";
 import { useTheme } from "@/providers/ThemeProvider";
 import { cn } from "@/lib/utils";
 
-type Tone = "purple" | "green" | "orange" | "pink" | "blue" | "cyan";
+export type Tone = "purple" | "green" | "orange" | "pink" | "blue" | "cyan";
 
 export function DesktopIcon({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -11,7 +10,7 @@ export function DesktopIcon({
   label,
   onOpen,
   tone = "blue",
-  gradientClass, // opcional: puedes pasar "grad-purple" directamente
+  gradientClass,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   icon: ComponentType<any>;
@@ -23,12 +22,10 @@ export function DesktopIcon({
   const { theme } = useTheme();
   const isRetro = theme === "retro";
 
-  // ====== selección y doble-click ======
   const [selected, setSelected] = useState(false);
   const clickTimer = useRef<number | null>(null);
   const lastClick = useRef<number>(0);
 
-  // Mapa a tus clases grad-* (ya definidas en tu CSS)
   const mapToneToGrad: Record<Tone, string> = {
     purple: "grad-purple",
     green: "grad-green",
@@ -37,12 +34,10 @@ export function DesktopIcon({
     blue: "grad-blue",
     cyan: "grad-cyan",
   };
-
   const grad = gradientClass ?? mapToneToGrad[tone];
 
   const handleClick = () => {
     const now = Date.now();
-    // Doble click “manual” para asegurar consistencia
     if (now - lastClick.current < 300) {
       if (clickTimer.current) {
         window.clearTimeout(clickTimer.current);
@@ -76,35 +71,47 @@ export function DesktopIcon({
     }
   };
 
-  // ====== clases visuales ======
-  const wrapperBase = "desktop-icon";
-  const selectedRingModern =
-    "ring-1 ring-white/60 ring-offset ring-offset-black/20";
-  const selectedOutlineRetro = "outline outline-1 outline-black/40";
+  // ===== Clases =====
+  const baseBtn =
+    "group flex flex-col items-center select-none outline-none focus-visible:ring-2 focus-visible:ring-white/70";
 
-  const wrapperCls = [
-    wrapperBase,
-    selected ? (isRetro ? selectedOutlineRetro : selectedRingModern) : "",
-  ].join(" ");
+  const selectedModern = "ring-2 ring-white/70 ring-offset-2 ring-offset-black/30";
+  const selectedRetro = "outline outline-1 outline-black/40";
 
-  // Contenedor del icono (pill moderna vs bevel retro)
-  const iconWrap = isRetro
-    ? [
-        "grid place-items-center w-14 h-14 mb-1",
-        "bg-[#cfcfcf]",
-        "border-2",
-        "border-t-white border-l-white border-b-[#808080] border-r-[#808080]",
-      ].join(" ")
-    : [
-        "pill grid place-items-center w-16 h-16 mb-1",
-        grad, // p.ej. "grad-purple"
-        // si quieres el efecto “lift” del CSS: .desktop-icon:hover .pill { transform... }
-      ].join(" ");
+  const wrapperCls = cn(
+    baseBtn,
+    isRetro ? "px-1 py-1" : "px-1.5 py-1.5",
+    selected ? (isRetro ? selectedRetro : selectedModern) : ""
+  );
 
-  const iconCls = isRetro ? "w-6 h-6 text-black" : "w-6 h-6 text-white";
-  const labelCls = isRetro
-    ? "text-[13px] text-black text-center"
-    : "text-[13px] text-white text-center drop-shadow";
+  // Icon container
+  const retroIconWrap = cn(
+    "grid place-items-center w-14 h-14 mb-1",
+    "bg-[#cfcfcf]",
+    "border-2",
+    "border-t-white border-l-white border-b-[#808080] border-r-[#808080]"
+  );
+
+  const modernIconWrap = cn(
+    "relative grid place-items-center w-16 h-16 mb-1 rounded-2xl overflow-hidden",
+    "transition-all duration-200 ease-out will-change-transform",
+    grad,
+    "shadow-lg group-hover:shadow-xl",
+    "group-hover:-translate-y-0.5 group-hover:scale-[1.05] active:translate-y-0 active:scale-100"
+  );
+
+  const iconCls = isRetro ? "w-6 h-6 text-black" : "w-6 h-6 text-white drop-shadow";
+
+  // Label
+  const retroLabel = "text-[13px] text-black text-center";
+  const modernLabel = cn(
+    "text-[13px] text-white text-center",
+    "transition-colors",
+    // pill de label en hover/selección
+    "px-1 py-0.5 rounded-md",
+    (selected ? "bg-white/15" : "bg-transparent"),
+    "group-hover:bg-white/10"
+  );
 
   return (
     <button
@@ -116,11 +123,29 @@ export function DesktopIcon({
       onBlur={() => setSelected(false)}
       aria-label={label}
       title={label}
+      tabIndex={0}
     >
-      <div className={cn(iconWrap, !isRetro ? "rounded-xl" : "")}>
+      {/* Icon container */}
+      <div
+        className={isRetro ? retroIconWrap : modernIconWrap}
+        style={
+          isRetro
+            ? {
+                boxShadow:
+                  "inset 1px 1px 0 0 #ffffff, inset -1px -1px 0 0 #808080",
+              }
+            : undefined
+        }
+      >
+        {/* brillo suave arriba en moderno */}
+        {!isRetro && (
+          <span className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />
+        )}
         <Icon className={iconCls} />
       </div>
-      <span className={labelCls}>{label}</span>
+
+      {/* Label */}
+      <span className={isRetro ? retroLabel : modernLabel}>{label}</span>
     </button>
   );
 }

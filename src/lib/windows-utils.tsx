@@ -16,11 +16,14 @@ export function clamp(n: number, min: number, max: number) {
  * Devuelve el tamaño del contenedor "escritorio" (fallback al viewport).
  * Si quieres otro contenedor, pasa un selector diferente.
  */
-export function getDesktopSize(selector = ".os-windows") {
-  const el = document.querySelector(selector) as HTMLElement | null;
-  const width = el?.clientWidth ?? window.innerWidth;
-  const height = el?.clientHeight ?? window.innerHeight;
-  return { width, height };
+export function getDesktopSize() {
+  const cs = getComputedStyle(document.documentElement);
+  const topPad = parseInt(cs.getPropertyValue("--menubar-h")) || 0;
+  const bottomPad = parseInt(cs.getPropertyValue("--taskbar-h")) || 0;
+  return {
+    width: window.innerWidth,
+    height: window.innerHeight - topPad - bottomPad,
+  };
 }
 
 /**
@@ -88,3 +91,14 @@ export function nextBoundsFromResize(
 
   return { x, y, w, h };
 }
+
+export function preventTextSelection(active: boolean) {
+  const root = document.documentElement;
+  if (active) {
+    root.style.setProperty("user-select", "none");
+    (root.style as CSSStyleDeclaration).userSelect = "none";
+  } else {
+    root.style.removeProperty("user-select");
+    (root.style as CSSStyleDeclaration).userSelect = "";
+  }
+};
