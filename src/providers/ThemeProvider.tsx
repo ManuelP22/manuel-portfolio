@@ -14,13 +14,25 @@ const ThemeCtx = createContext<Ctx | null>(null);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     const saved = localStorage.getItem("theme");
-    return (saved === "retro" || saved === "modern") ? (saved as Theme) : "modern";
+    return saved === "retro" || saved === "modern" ? (saved as Theme) : "modern";
   });
 
   useEffect(() => {
     const root = document.body;
-    root.classList.remove("theme-modern", "theme-retro");
-    root.classList.add(theme === "retro" ? "theme-retro" : "theme-modern");
+
+    // Limpia clases previas
+    root.classList.remove("theme-modern", "theme-retro", "cursor-mac");
+
+    // Aplica tema
+    if (theme === "retro") {
+      root.classList.add("theme-retro");
+      // En retro NO aplicamos cursor-mac
+    } else {
+      root.classList.add("theme-modern");
+      // Activa cursores estilo macOS (CSS ya cargado en main.tsx)
+      root.classList.add("cursor-mac");
+    }
+
     root.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
   }, [theme]);
@@ -30,7 +42,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     isModern: theme === "modern",
     isRetro: theme === "retro",
     setTheme,
-    toggle: () => setTheme(t => (t === "modern" ? "retro" : "modern")),
+    toggle: () => setTheme((t) => (t === "modern" ? "retro" : "modern")),
   };
 
   return <ThemeCtx.Provider value={value}>{children}</ThemeCtx.Provider>;

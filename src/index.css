@@ -125,7 +125,6 @@
   .window-body {
     flex: 1 1 auto;
     overflow: auto;
-    padding: 12px;
   }
 
   /* Botones taskbar/launcher: base mínima (los skins los estilizan) */

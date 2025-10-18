@@ -1,7 +1,7 @@
 import { useOS } from "@/context/OSProvider";
 import { Window } from "./Window";
 
-const DEFAULT_BOUNDS = { x: 80, y: 80, w: 560, h: 380 };
+const DEFAULT_BOUNDS = { x: 80, y: 80, w: 957, h: 724 };
 
 export function WindowsLayer() {
   const os = useOS();

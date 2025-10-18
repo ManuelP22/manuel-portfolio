@@ -106,7 +106,7 @@ function AppleMenu({
     { id: "about", label: "Acerca de este Portafolio" },
     { id: "pref", label: "Preferencias…" },
     { id: "sep-1", label: "-", divider: true },
-    { id: "switch", label: "Cambiar a Windows 98", onSelect: onToggleVersion },
+    { id: "switch", label: "Journy to the past", onSelect: onToggleVersion },
     { id: "sep-2", label: "-", divider: true },
     { id: "sleep", label: "Reposo", disabled: true },
     { id: "restart", label: "Reiniciar…", disabled: true },

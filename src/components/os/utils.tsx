@@ -1,31 +1,22 @@
-import { FolderOpen, Mail, User } from "lucide-react";
+import { Mail } from "lucide-react";
 import type { App } from "@/lib/app";
-import { AboutPage } from "@/pages/About";
-import { ContactPage } from "@/pages/Contact";
-import { ProjectsPage } from "@/pages/Projects";
+import { ContactPage } from "@/Apps/Contact";
+import ManuelApp from "@/Apps/About Manuel";
 
 export const menuOptions: App[] = [
-  {
-    id: "about",
-    title: "About",
-    description: "Quién soy",
-    icon: User,
-    gradient: "from-purple-500 to-purple-700",
-    content: <AboutPage />,
-  },
-  {
-    id: "projects",
-    title: "Projects",
-    description: "Lo que he construido",
-    icon: FolderOpen,
-    gradient: "from-green-500 to-emerald-700",
-    content: <ProjectsPage />,
-  },
+{
+  id: "about-manuel",
+  title: "About Manuel",
+  description: "Lo que he construido",
+  iconImage: "/images/bunny.png",
+  gradient: "from-green-500 to-emerald-700",
+  content: <ManuelApp />,
+},
   {
     id: "contact",
     title: "Contact",
     description: "Hablemos",
-    icon: Mail,
+    icon: Mail, // usando componente
     gradient: "from-orange-500 to-orange-700",
     content: <ContactPage />,
   },

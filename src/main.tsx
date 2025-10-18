@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import './cursors-mac.css'
 import App from './App.tsx'
 import { HashRouter as BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from './providers/ThemeProvider.tsx';

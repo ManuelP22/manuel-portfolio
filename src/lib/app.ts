@@ -1,32 +1,36 @@
 import type { ComponentType, ReactNode } from "react";
 
-/** Tipo único y compartido para las “apps” (StartMenu, Desktop, Taskbar, etc.) */
+/** App ahora soporta icono por componente o por imagen */
 export type App = {
-  id?: string; // si hay id, usaremos os.open/os.toggle por defecto
+  id?: string;
   title: string;
   description?: string;
-  icon: ComponentType<{ className?: string }>;
-  gradient?: string; // ej: "from-green-500 to-emerald-700"
+
+  // Icono vectorial (Lucide, etc.) — opcional
+  icon?: ComponentType<{ className?: string }>;
+
+  // Icono por imagen — opcional
+  iconImage?: string;           // ruta pública (ej: "/images/bunny.png")
+  dockFillIcon?: boolean;       // si quieres usarlo en el dock a pantalla completa
+  dockImageFit?: "cover" | "contain" | "fill" | "none" | "scale-down";
+
+  gradient?: string;
   content?: ReactNode | (() => ReactNode);
-  onClick?: () => void; // si lo defines, tiene prioridad
+  onClick?: () => void;
 };
 
-/** OS mínimo para abrir/togglear ventanas sin acoplar al provider concreto
- *  ⟵ content es REQUERIDO para que sea compatible con tu OSApi.toggle(WindowConfig)
- */
+/** OS mínimo… (sin cambios) */
 export type OsLike = {
   toggle: (args: { id: string; title: string; content: ReactNode }) => void;
   open?: (args: { id: string; title: string; content: ReactNode }) => void;
 };
 
-/** Resuelve contenido “perezoso” (función) o lo retorna tal cual si es ReactNode */
 export function resolveAppContent(
   c?: ReactNode | (() => ReactNode)
 ): ReactNode | undefined {
   return typeof c === "function" ? (c as () => ReactNode)() : c;
 }
 
-/** Abre/ejecuta una App con onClick (si existe) o usando os.open/os.toggle */
 export function openApp(os: OsLike, app: App): void {
   if (app.onClick) {
     app.onClick();
@@ -34,15 +38,9 @@ export function openApp(os: OsLike, app: App): void {
   }
   if (!app.id) return;
 
-  // Aseguramos content SIEMPRE (null es un ReactNode válido)
   const content: ReactNode = resolveAppContent(app.content) ?? null;
 
-  const payload = {
-    id: app.id,
-    title: app.title,
-    content,
-  };
-
+  const payload = { id: app.id, title: app.title, content };
   if (typeof os.open === "function") os.open(payload);
   else os.toggle(payload);
 }
